@@ -100,33 +100,118 @@ Where:
 
 ```python
 
+import gymnasium as gym
+import numpy as np
+```
+```PYTHON
+# Create FrozenLake environment
+env = gym.make("FrozenLake-v1", map_name="4x4", is_slippery=True)
+```
+```PYTHON
+# Access the unwrapped environment to use the transition model
+env = env.unwrapped
+```
+```PYTHON
+# Number of states and actions
+n_states = env.observation_space.n
+n_actions = env.action_space.n
+```
+```PYTHON
+# Parameters
+gamma = 0.99
+theta = 1e-8
+```
+```PYTHON
+# Random policy: each action has equal probability
+policy = np.ones((n_states, n_actions)) / n_actions
+
+```
+```PYTHON
+# Initialize value function
+V = np.zeros(n_states)
 
 # -------------------------------------------------
 # Policy Evaluation Function
 # -------------------------------------------------
 
+def policy_evaluation(env, policy, gamma=0.99, theta=1e-8):
+    """
+    Performs iterative policy evaluation using the Bellman expectation equation.
 
-# -------------------------------------------------
-# Display Output
-# -------------------------------------------------
+    Parameters:
+        env    : Gymnasium FrozenLake environment
+        policy : Fixed policy to be evaluated
+        gamma  : Discount factor
+        theta  : Convergence threshold
 
-# Change the parameters and observe the results
+    Returns:
+        V         : Estimated state-value function
+        iteration : Number of iterations used for convergence
+    """
+    n_states = env.observation_space.n
+    n_actions = env.action_space.n
 
+    # Initialize value function
+    V = np.zeros(n_states)
+
+    iteration = 0
+
+    while True:
+        delta = 0
+
+        # Evaluate every state
+        for state in range(n_states):
+
+            v = 0
+
+            # Loop over all possible actions
+            for action in range(n_actions):
+
+                action_prob = policy[state][action]
+
+                # Loop over all possible transitions
+                for trans_prob, next_state, reward, done in env.P[state][action]:
+
+                    v += action_prob * trans_prob * (
+                        reward + gamma * V[next_state] * (not done)
+                    )
+
+            # Maximum change in value function
+            delta = max(delta, abs(v - V[state]))
+
+            # Update state value
+            V[state] = v
+
+        iteration += 1
+
+        # Check convergence
+        if delta < theta:
+            break
+    return V, iteration
 ```
+```PYTHON
+V, iterations = policy_evaluation(env, policy, gamma, theta)
 
+print("Name: VIJAY R ")
+print("Register Number: 212223240178    ")
+print("Number of iterations:", iterations)
+print("\nState-Value Function:")
+print(V)
+
+print("Name: VIJAY R           ")
+print("Register Number: 212223240178  ")
+print("\nState-Value Function as 4x4 Grid:")
+print(np.round(V.reshape(4, 4), 4))
+
+env.close()
+```
 ---
 
 ## Output
 
-```text
-
-Number of Iterations: 
-
-State-Value Function as 4x4 Grid:
+<img width="808" height="320" alt="image" src="https://github.com/user-attachments/assets/cdc882fc-5fac-4a42-a6ea-ae79a7e3c452" />
 
 
-
-```
 ---
 
 ## Result
@@ -137,11 +222,12 @@ Iterative policy evaluation was implemented successfully using the Gymnasium Fro
 
 ## Inference
 
-```text
+
+- The iterative policy evaluation algorithm successfully converged in 54 iterations and estimated the state-value function for the FrozenLake-v1 environment under a fixed random policy. 
+- The computed 4 × 4 value grid shows that states closer to the goal have higher expected returns, with the maximum state value of approximately 0.4336, while terminal and hole states have a value of 0.
+- This confirms that the Bellman expectation equation was correctly applied to evaluate the expected long-term reward of each state under the given policy.
 
 
-
-```
 
 
 
